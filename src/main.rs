@@ -41,15 +41,16 @@ fn main() {
     if param.ne("") {
         let file;
         if param.eq("-a") {
-            if let Some(filename) = args.next() {
-                file = File::options().create(true).append(true).open(&filename);
-            } else {
-                file = File::options().create(true).write(true).open(&param);
-            }
-            let mut file = file.expect(&format!("file {} create error", &param));
-            file.write_all(str.as_bytes())
-                .expect(&format!("write to file '{}' error", &param));
+            file = File::options()
+                .create(true)
+                .append(true)
+                .open(&args.next().unwrap_or(String::from("cb.txt")));
+        } else {
+            file = File::options().create(true).write(true).open(&param);
         }
+        let mut file = file.expect(&format!("file {} create error", &param));
+        file.write_all(str.as_bytes())
+            .expect(&format!("write to file '{}' error", &param));
     }
     ctx.set_contents(str).expect("clipboard error");
 }
