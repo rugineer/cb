@@ -2,7 +2,6 @@ use cli_clipboard::{ClipboardContext, ClipboardProvider};
 use std::fs::File;
 use std::io;
 use std::io::{Read, Write};
-use std::path::Path;
 use std::sync::mpsc::channel;
 use std::thread::{sleep, spawn};
 use std::time::Duration;
@@ -10,9 +9,7 @@ use std::time::Duration;
 fn main() {
     let mut ctx = ClipboardContext::new().expect("clipboard context error");
     let mut args = std::env::args();
-    let param = args.nth(1)
-        .unwrap_or(String::from(""))
-        .to_lowercase();
+    let param = args.nth(1).unwrap_or(String::from("")).to_lowercase();
     if param.eq("-p") {
         println!(
             "{}",
@@ -40,12 +37,19 @@ fn main() {
     }
     if param.eq("-v") {
         println!("{}", &str)
-    } else if param.ne("") {
-        File::create(Path::new(&param))
-            .expect(&format!("file {} create error", &param))
-            .write_all(str.as_bytes())
-            .expect(&format!("write to file '{}' error", &param));
+    }
+    if param.ne("") {
+        let file;
+        if param.eq("-a") {
+            if let Some(filename) = args.next() {
+                file = File::options().create(true).append(true).open(&filename);
+            } else {
+                file = File::options().create(true).write(true).open(&param);
+            }
+            let mut file = file.expect(&format!("file {} create error", &param));
+            file.write_all(str.as_bytes())
+                .expect(&format!("write to file '{}' error", &param));
+        }
     }
     ctx.set_contents(str).expect("clipboard error");
 }
-
